@@ -65,7 +65,14 @@ jQuery(document).ready(function($) {
 	
 	var oSubmitQueue = jQuery('<input type="button" name="publish-queue" id="publish-queue" class="button button-primary button-large button-queue" value="Queue"><input type="hidden" name="queue-posts-plugin-future-date">');
 	
+	// Display add to queue button on new posts
 	jQuery('body.post-new-php #publishing-action').append( oSubmitQueue );
+	
+	// If in edit screen and post is unpublished then give add to queue button
+	var state = jQuery('body.post-php #publishing-action #publish').val();
+	if (state != 'Update'){
+		jQuery('body.post-php #publishing-action').append( oSubmitQueue );
+	}
 	
 	jQuery('#publish-queue').click(function() {
 		
