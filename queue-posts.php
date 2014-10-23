@@ -91,22 +91,49 @@ jQuery(document).ready(function($) {
 add_action('wp_ajax_get_next_publish_time', 'get_next_publish_time_callback');
 function get_next_publish_time_callback() {
 	
-	$posts = array_merge( get_posts('post_status=future'), get_pages('post_status=future') );
+	$last_queued = getQueueLastQueued();
 	
-	$latest_date = 0;
-	
-	foreach ($posts as $post) {
+	// If we are using database value to queue posts
+	if ($last_queued) {
 		
-		$date = strtotime($post->post_date);
-		
-		if ( $date > $latest_date ) {
-			$latest_date = $date;
+		// if now >= last queued
+		if (mktime() >= $last_queued){
+			$latest_date = mktime();
+		} else {
+			$latest_date = $last_queued;
 		}
 		
-	}
+		// save last queued + interval to database
+		$iMinimumInterval     = getQueueMinimumInterval();
+		$iMinimumIntervalType = getQueueMinimumIntervalType();
+		
+		if ($iMinimumIntervalType == 'm')	{ $update = $iMinimumInterval*60; }
+		else								{ $update = $iMinimumInterval*60*60; }
+		
+		$last_queued = $latest_date + $update;
+		
+		update_option('queue_posts_last_queued', $last_queued);
 	
-	if ( $latest_date == 0 ) {
-		$latest_date = mktime();
+	// If we are queuing posts after the last scheduled post...
+	} else {
+	
+		$posts = array_merge( get_posts('post_status=future'), get_pages('post_status=future') );
+		
+		$latest_date = 0;
+		
+		foreach ($posts as $post) {
+			
+			$date = strtotime($post->post_date);
+			
+			if ( $date > $latest_date ) {
+				$latest_date = $date;
+			}
+			
+		}
+		
+		if ( $latest_date == 0 ) {
+			$latest_date = mktime();
+		}
 	}
 	
 	echo $latest_date;
