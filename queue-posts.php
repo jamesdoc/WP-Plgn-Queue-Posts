@@ -50,6 +50,14 @@ function queue_posts_head() {
 	echo '<link rel="stylesheet" type="text/css" href="' . plugin_dir_url( __FILE__ ) . 'style.css">';
 }
 
+
+// Create or destroy settings in database on activation/deactivation
+register_activation_hook(__FILE__, 'queue_posts_activate');
+register_deactivation_hook(__FILE__, 'queue_posts_deactivate');
+function queue_posts_activate()		{ update_option('queue_posts_last_queued', false); }
+function queue_posts_deactivate()	{ delete_option('queue_posts_last_queued'); }
+
+
 add_action('admin_footer', 'queue_posts_footer');
 function queue_posts_footer() { ?>
 <script type="text/javascript">
@@ -183,6 +191,7 @@ function queue_posts_insert_post_data($data, $postarr) {
 function queue_posts_admin_page() {
 	
 	if ( isset($_POST['queue-time-from']) ) {
+		$iLastQueued		  = $_POST['queue-posts-last-queued'];
 		$iQueueTimeFrom       = $_POST['queue-time-from'];
 		$iQueueTimeTo         = $_POST['queue-time-to'];
 		$iMinimumInterval     = $_POST['minimum-interval'];
@@ -193,16 +202,20 @@ function queue_posts_admin_page() {
 			$iMinimumInterval = 0;
 		}
 		
+		if ($iLastQueued == 'false'){ $iLastQueued = false; }
+		
 		update_option('queue_posts_time_from', $iQueueTimeFrom);
 		update_option('queue_posts_time_to', $iQueueTimeTo);
 		update_option('queue_posts_minimum_interval', $iMinimumInterval);
 		update_option('queue_posts_minimum_interval_type', $iMinimumIntervalType);
+		update_option('queue_posts_last_queued', $iLastQueued);
 		
 		wp_redirect('?page=' . $_GET['page'] . '&msg=saved');
 		
 		exit();
 	}
 	
+	$iLastQueued		  = getQueueLastQueued();
 	$iQueueTimeFrom       = getQueueTimeFromSetting();
 	$iQueueTimeTo         = getQueueTimeToSetting();
 	$iMinimumInterval     = getQueueMinimumInterval();
@@ -212,6 +225,7 @@ function queue_posts_admin_page() {
 	$timeformat       = strtolower( get_option('time_format') );
 	$bUsing12HourTime = str_replace('\a', '', $timeformat);
 	$bUsing12HourTime = (strpos($bUsing12HourTime, 'a') !== FALSE);
+	
 	?>
 	
 	<style type="text/css">
@@ -270,7 +284,7 @@ function queue_posts_admin_page() {
 					<?php echo _('Publish between'); ?>:
 				</label>
 				
-				<br><br>
+				<br>
 				
 				<select id="queue-posts-time-from" name="queue-time-from">
 					<option value="00"><?php echo ($bUsing12HourTime ? '12 AM' : '00'); ?></option>
@@ -332,14 +346,27 @@ function queue_posts_admin_page() {
 				<label for="queue-posts-minimum-interval">
 					<?php echo _('Minimum time between posts'); ?>:
 				</label>
-				
-				<br><br>
+				<br>
 				
 				<input id="queue-posts-minimum-interval" name="minimum-interval" type="text" maxlength="4" value="<?php echo $iMinimumInterval; ?>" style="width: 50px; text-align: center;">
 				<select id="queue-posts-minimum-interval-type" name="minimum-interval-type">
 					<option value="h"><?php echo _('hour(s)'); ?></option>
 					<option value="m"><?php echo _('minute(s)'); ?></option>
 				</select>
+			</p>
+			
+			<p>
+				<label for="queue-posts-last-queued">
+					<?php echo _('Use database scheduling?'); ?>
+				</label>
+				
+				<br>
+				
+				<select id="queue-posts-last-queued" name="queue-posts-last-queued">
+					<option value="<?php if($iLastQueued){ echo $iLastQueued; } else { echo mktime(); } ?>" <?php if($iLastQueued){ echo 'selected=selected'; } ?>>Insert next post after previously queued item</option>
+					<option value="false" <?php if(!$iLastQueued){ echo 'selected=selected'; } ?>>Insert next post after the last scheduled post</option>
+				</select>
+				
 			</p>
 			
 			<p>
