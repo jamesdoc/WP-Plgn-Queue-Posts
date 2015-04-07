@@ -1,11 +1,8 @@
 <?php
 /*
-Plugin Name: Queue posts - by Wonder
-Plugin URI: http://WeAreWonder.dk/wp-plugins/queue-posts/
+Plugin Name: Queue posts
 Description: Queue posts and pages for later publishing with the press of a button.
-Version: 1.5.1
-Author: Wonder
-Author URI: http://WeAreWonder.dk
+Version: ##
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=5B6TDUTW2JVX8
 License: GPL2
 	
