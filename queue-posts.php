@@ -1,8 +1,11 @@
 <?php
 /*
-Plugin Name: Queue posts
+Plugin Name: Queue posts - by Wonder
+Plugin URI: http://WeAreWonder.dk/wp-plugins/queue-posts/
 Description: Queue posts and pages for later publishing with the press of a button.
-Version: ##
+Version: 1.5.1
+Author: Wonder
+Author URI: http://WeAreWonder.dk
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=5B6TDUTW2JVX8
 License: GPL2
 	
@@ -29,6 +32,13 @@ require_once('functions.php');
 if ( !function_exists( 'add_action' ) ) {
 	echo 'Hi there!  I\'m just a plugin, not much I can do when called directly.';
 	exit;
+}
+
+// Lets not worry about checking for updates
+add_filter('site_transient_update_plugins', 'dd_remove_update_nag');
+function dd_remove_update_nag($value) {
+	unset($value->response[ plugin_basename(__FILE__) ]);
+	return $value;
 }
 
 // Allow redirection, even if my theme starts to send output to the browser
